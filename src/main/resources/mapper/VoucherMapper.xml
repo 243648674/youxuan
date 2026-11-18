@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiangmu.youxuan.mapper.VoucherMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into voucher
+        (title,sub_title,rules,type,min_amount,discount_amount,discount_rate,stock,
+         receive_begin_time,receive_end_time,use_begin_time,use_end_time,status,create_time,update_time)
+        values
+        (#{title},#{subTitle},#{rules},#{type},#{minAmount},#{discountAmount},#{discountRate},#{stock},
+         #{receiveBeginTime},#{receiveEndTime},#{useBeginTime},#{useEndTime},1,now(),now())
+    </insert>
+    <update id="update">
+        update voucher
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="subTitle != null">sub_title = #{subTitle},</if>
+            <if test="rules != null">rules = #{rules},</if>
+            <if test="minAmount != null">min_amount = #{minAmount},</if>
+            <if test="discountAmount != null">discount_amount = #{discountAmount},</if>
+            <if test="discountRate != null">discount_rate = #{discountRate},</if>
+            <if test="stock != null">stock = #{stock},</if>
+            <if test="receiveBeginTime != null">receive_begin_time = #{receiveBeginTime},</if>
+            <if test="receiveEndTime != null">receive_end_time = #{receiveEndTime},</if>
+            <if test="useBeginTime != null">use_begin_time = #{useBeginTime},</if>
+            <if test="useEndTime != null">use_end_time = #{useEndTime},</if>
+            update_time = now()
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateStatus">
+        update voucher set status = #{status}, update_time = now() where id = #{id}
+    </update>
+    <delete id="delete">
+        delete from voucher where id = #{id} and status = 0
+    </delete>
+    <select id="select" resultType="com.xiangmu.youxuan.entity.Voucher">
+        select * from voucher
+        <where>
+            <if test="voucherPageQueryDTO.status != null">and status = #{voucherPageQueryDTO.status}</if>
+            <if test="voucherPageQueryDTO.type != null">and type = #{voucherPageQueryDTO.type}</if>
+        </where>
+        order by id asc limit #{begin},#{voucherPageQueryDTO.pageSize}
+    </select>
+    <select id="count" resultType="java.lang.Long">
+        select count(*) from voucher
+        <where>
+            <if test="status != null">and status = #{status}</if>
+            <if test="type != null">and type = #{type}</if>
+        </where>
+    </select>
+    <select id="selectById" resultType="com.xiangmu.youxuan.entity.Voucher">
+        select * from voucher where id = #{id}
+    </select>
+    <select id="selectByTitle" resultType="com.xiangmu.youxuan.entity.Voucher">
+        select * from voucher where title = #{title}
+    </select>
+    <select id="selectByIdForUpdate" resultType="com.xiangmu.youxuan.entity.Voucher">
+        select * from voucher where id = #{id} for update
+    </select>
+    <select id="userListSelect" resultType="com.xiangmu.youxuan.entity.Voucher">
+        select * from voucher
+        where status = 1 and stock > 0
+          and receive_begin_time &lt;= now() and receive_end_time &gt; now()
+          and use_end_time &gt; now()
+        order by id asc
+    </select>
+    <select id="selectUserList" resultType="com.xiangmu.youxuan.vo.userVO.UUserVoucherVO">
+        select uv.id,uv.voucher_id,uv.status,uv.receive_time,
+               v.title,v.sub_title,v.rules,v.type,v.min_amount,v.discount_amount,v.discount_rate,
+               v.use_begin_time,v.use_end_time
+        from user_voucher uv
+        inner join voucher v on uv.voucher_id = v.id
+        where uv.user_id = #{userId}
+        <if test="userVoucherQueryDTO.status != null">and uv.status = #{userVoucherQueryDTO.status}</if>
+        <if test="userVoucherQueryDTO.type != null">and v.type = #{userVoucherQueryDTO.type}</if>
+        order by uv.id asc
+    </select>
+    <select id="countUserVoucherByVoucherId" resultType="java.lang.Long">
+        select count(*) from user_voucher where voucher_id = #{voucherId}
+    </select>
+    <update id="receiveStock">
+        update voucher
+        set stock = stock - 1,
+            update_time = now()
+        where id = #{voucherId}
+          and stock &gt; 0
+    </update>
+    <insert id="insertUserVoucher">
+        insert into user_voucher
+        (user_id, voucher_id, status, receive_time)
+        values
+        (#{userId}, #{voucherId}, 0, now())
+    </insert>
+</mapper>

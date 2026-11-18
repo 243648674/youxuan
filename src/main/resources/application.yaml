@@ -1,0 +1,40 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: youxuan
+  datasource:
+    url: jdbc:mysql://localhost:3306/youxuan?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: 192.168.11.131
+      port: 6379
+      database: 0
+      timeout: 3s
+  rabbitmq:
+    host: 192.168.11.131
+    port: 5672
+    username: admin
+    password: 123456
+  elasticsearch:
+    uris: http://192.168.11.131:9200
+
+# JWT 配置
+jwt:
+  secret-key: abcdefghijklmn_secret_key_32_bytes  # HS256 要求密钥至少 32 字节
+  expiration: 2592000000  # token 有效期（毫秒），30天
+
+mybatis:
+  mapper-locations: classpath:*.xml
+  type-aliases-package: com.xiangmu.youxuan
+  configuration:
+    map-underscore-to-camel-case: true
+
+app:
+  search:
+    import-enabled: true
+
+

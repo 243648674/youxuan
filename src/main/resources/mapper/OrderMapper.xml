@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiangmu.youxuan.mapper.OrderMapper">
+    <insert id="insert">
+        insert into orders
+        (id, user_id, pay_amount, pay_method, status,
+         receiver_name, receiver_phone, receiver_address,
+         create_time, update_time)
+        values
+            (#{id}, #{userId}, #{payAmount}, #{payMethod}, 0,
+             #{receiverName}, #{receiverPhone}, #{receiverAddress},
+             now(), now())
+    </insert>
+    <insert id="insertItem" useGeneratedKeys="true" keyProperty="id">
+        insert into order_item
+        (order_id, product_id, product_name, product_image, price, quantity, pay_price)
+        values
+            (#{orderId}, #{productId}, #{productName}, #{productImage}, #{price}, #{quantity}, #{payPrice})
+    </insert>
+    <select id="selectById" resultType="com.xiangmu.youxuan.entity.Order">
+        select * from orders where id = #{id}
+    </select>
+    <select id="selectUserById" resultType="com.xiangmu.youxuan.entity.Order">
+        select * from orders where id = #{id} and user_id = #{userId}
+    </select>
+    <select id="selectItemByOrderId" resultType="com.xiangmu.youxuan.entity.OrderItem">
+        select * from order_item where order_id = #{orderId}
+    </select>
+    <!-- 修改点：状态 + 时间合并为一条 UPDATE，WHERE 带旧状态原子校验 -->
+    <update id="updateStatus">
+        update orders
+        <set>
+            status = #{status},
+            <if test="status == 1">pay_time = now(),</if>
+            <if test="status == 2">delivery_time = now(),</if>
+            <if test="status == 3">finish_time = now(),</if>
+            <if test="status == 4">cancel_time = now(),</if>
+            update_time = now()
+        </set>
+        where id = #{id} and status = #{currentStatus}
+    </update>
+    <update id="updateDelete">
+        update orders set status = 4, cancel_time = now(), update_time = now() where id = #{id} and status = 0
+    </update>
+    <update id="refund">
+        update orders
+        set status = 5,
+            update_time = now()
+        where id = #{id}
+          and status in (1, 2, 3)
+    </update>
+    <select id="count" resultType="java.lang.Long">
+        select count(*) from orders
+        <where>
+            <if test="status != null">and status = #{status}</if>
+            <if test="payMethod != null">and pay_method = #{payMethod}</if>
+            <if test="userId != null">and user_id = #{userId}</if>
+        </where>
+    </select>
+    <select id="select" resultType="com.xiangmu.youxuan.entity.Order">
+        select * from orders
+        <where>
+            <if test="orderPageQueryDTO.status != null">and status = #{orderPageQueryDTO.status}</if>
+            <if test="orderPageQueryDTO.payMethod != null">and pay_method = #{orderPageQueryDTO.payMethod}</if>
+            <if test="orderPageQueryDTO.userId != null">and user_id = #{orderPageQueryDTO.userId}</if>
+        </where>
+        order by id asc limit #{begin},#{orderPageQueryDTO.pageSize}
+    </select>
+    <select id="selectUserList" resultType="com.xiangmu.youxuan.entity.Order">
+        select * from orders
+        where user_id = #{orderPageQueryDTO.userId}
+        order by id asc
+    </select>
+    <update id="pay">
+        update orders set status = 1,update_time = now(),pay_time = now()
+        where id = #{id} and status = 0 and user_id = #{userId}
+    </update>
+</mapper>

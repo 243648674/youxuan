@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiangmu.youxuan.mapper.EmployeeMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into employee
+        (username,password,name,age,sex,phone,id_number,status,create_time,update_time)
+        values
+            (#{username},#{password},#{name},#{age},#{sex},#{phone},#{idNumber},1,now(),now())
+    </insert>
+    <select id="employeeSelectByUsername" resultType="com.xiangmu.youxuan.entity.Employee">
+        select * from employee where username = #{username}
+    </select>
+    <select id="selectById" resultType="com.xiangmu.youxuan.entity.Employee">
+        select * from employee where id = #{id}
+    </select>
+    <select id="count" resultType="java.lang.Long">
+        select count(*) from employee 
+        <where>
+        <if test="name != null and name != ''">
+            and name like concat('%',#{name},'%')
+        </if>
+        <if test="status != null">
+            and status = #{status}
+        </if>
+        </where>
+    </select>
+    <select id="select" resultType="com.xiangmu.youxuan.entity.Employee">
+        select * from employee
+        <where>
+            <if test="employeePageQueryDTO.name != null and employeePageQueryDTO.name != ''">
+                and name like concat('%',#{employeePageQueryDTO.name},'%')
+            </if>
+            <if test="employeePageQueryDTO.status != null">
+                and status = #{employeePageQueryDTO.status}
+            </if>
+        </where>
+        order by id asc limit #{begin},#{employeePageQueryDTO.pageSize}
+    </select>
+    <update id="updateStatus">
+        update employee
+        set status = #{status},
+            update_time = now()
+        where id = #{id}
+          and employee_type = 1
+    </update>
+    <update id="updateEmployeeType">
+        update employee
+        set employee_type = #{newType},
+            update_time = now()
+        where id = #{id}
+          and employee_type = #{oldType}
+          and status = 1
+    </update>
+    <update id="update">
+        update employee
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="sex != null">sex = #{sex},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="idNumber != null">id_number = #{idNumber},</if>
+            update_time = now()
+        </set>
+        where id = #{id}
+    </update>
+</mapper>

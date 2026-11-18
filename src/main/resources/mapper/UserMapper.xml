@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiangmu.youxuan.mapper.UserMapper">
+    <select id="userSelectByUsername" resultType="com.xiangmu.youxuan.entity.User">
+        select * from user where username = #{username}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into user
+        (username,password,name,phone,avatar,status,create_time,update_time)
+        values
+            (#{username},#{password},#{name},#{phone},#{avatar},1,now(),now())
+    </insert>
+    <select id="count" resultType="java.lang.Long">
+        select count(*) from user
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%',#{name},'%')
+            </if>
+            <if test="status != null">
+                and status =#{status}
+            </if>
+        </where>
+    </select>
+    <select id="select" resultType="com.xiangmu.youxuan.entity.User">
+        select * from user
+        <where>
+            <if test="userPageQueryDTO.name != null and userPageQueryDTO.name != ''">
+                and name like concat('%',#{userPageQueryDTO.name},'%')
+            </if>
+            <if test="userPageQueryDTO.status != null">
+                and status =#{userPageQueryDTO.status}
+            </if>
+        </where>
+        order by id asc limit #{begin},#{userPageQueryDTO.pageSize}
+    </select>
+    <select id="selectById" resultType="com.xiangmu.youxuan.entity.User">
+        select * from user where id = #{id}
+    </select>
+    <update id="updateStatus">
+        update user
+        set status = 0,
+            update_time = now()
+        where id = #{id}
+          and status = 1
+    </update>
+</mapper>

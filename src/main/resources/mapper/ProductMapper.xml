@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiangmu.youxuan.mapper.ProductMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into product
+        (name,description,price,stock,sales,image,category_id,status,create_time,update_time)
+        values
+            (#{name},#{description},#{price},#{stock},#{sales},#{image},#{categoryId},1,now(),now())
+    </insert>
+    <update id="updateStatus">
+        update product set status = #{status}, update_time = now() where id = #{id}
+    </update>
+    <update id="updateStock">
+        update product set stock = stock + #{stock} ,update_time = now() where id = #{id} and stock + #{stock} >= 0  and (#{stock} >= 0 or status = 1)
+    </update>
+    <update id="updateSales">
+        update product set sales = sales + #{quantity},update_time = now() where id = #{id} and sales + #{quantity} >= 0
+    </update>
+    <update id="update">
+        update product
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="stock != null">stock = #{stock},</if>
+            <if test="image != null">image = #{image},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            update_time = now()
+        </set>
+        where id = #{id}
+    </update>
+    <select id="selectById" resultType="com.xiangmu.youxuan.entity.Product">
+        select p.*,c.name as categoryName from product p left join category c on p.category_id = c.id where p.id = #{id}
+    </select>
+    <select id="selectByName" resultType="com.xiangmu.youxuan.entity.Product">
+        select p.*,c.name as categoryName from product p left join category c on p.category_id = c.id where p.name = #{name}
+    </select>
+    <select id="count" resultType="java.lang.Long">
+        select count(*) from product 
+        <where>
+            <if test="name != null and name != ''">and name like concat('%',#{name},'%')</if>
+            <if test="status != null">and status = #{status}</if>
+            <if test="categoryId != null">and category_id = #{categoryId}</if>
+        </where>
+    </select>
+    <select id="countByCategoryId" resultType="java.lang.Long">
+        select count(*) from product where category_id = #{categoryId}
+    </select>
+    <select id="selectUserList" resultType="com.xiangmu.youxuan.entity.Product">
+        select * from product
+        where status = 1 and category_id = #{categoryId}
+        order by id asc
+    </select>
+    <select id="nameSelect" resultType="com.xiangmu.youxuan.entity.Product">
+        select * from product
+        where status = 1 and name like concat('%', #{name}, '%')
+        order by id asc
+    </select>
+    <select id="select" resultType="com.xiangmu.youxuan.entity.Product">
+        select p.*,c.name as categoryName from product p left join category c on p.category_id = c.id
+        <where>
+            <if test="productPageQueryDTO.name != null and productPageQueryDTO.name != ''">and p.name like concat('%',#{productPageQueryDTO.name},'%')</if>
+            <if test="productPageQueryDTO.status != null">and p.status = #{productPageQueryDTO.status}</if>
+            <if test="productPageQueryDTO.categoryId != null">and p.category_id = #{productPageQueryDTO.categoryId}</if>
+        </where>
+        order by p.id asc limit #{begin},#{productPageQueryDTO.pageSize}
+    </select>
+    <select id="selectSearchBatch"
+            resultType="com.xiangmu.youxuan.entity.Product">
+        select id,category_id,name,description,price,sales,image,status from product
+        <where>
+            <if test="lastId != null">id &gt; #{lastId}</if>
+        </where>
+        order by id asc
+        limit #{batchSize}
+    </select>
+</mapper>

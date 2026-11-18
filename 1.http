@@ -1,0 +1,14 @@
+POST http://localhost:8080/user/userLogin
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "123456"
+}
+###
+GET http://localhost:8080/user/product/selectById?id=1
+token: eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzg3MjExNjA0LCJleHAiOjE3ODk4MDM2MDR9.ZQ8bIdLwhkyaT3d-sBqnBEbBTU6WUB_-R1eZt2glGLc
+
+#### 第二次查询同一个商品：此时应直接读取 Redis 缓存
+#GET http://localhost:8080/user/product/selectById?id=1
+#token: {{token}}
